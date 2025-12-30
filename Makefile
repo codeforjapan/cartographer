@@ -1,10 +1,12 @@
 .PHONY: dev supabase-fetch supabase-up supabase-down dev-app db-schema db-reset supabase-init deploy deploy-watch deploy-log deploy-status deploy-log-full
 
-# 初回セットアップ用: Supabase の docker セットを取得
+# Supabase docker setup を取得
 supabase-fetch:
 	infra/supabase/fetch-supabase-compose.sh
 
-# Supabase スタックを起動 (バックグラウンド)
+supabase-remove:
+	rm -rf infra/supabase/bundle
+
 supabase-up:
 	@if [ ! -f infra/supabase/bundle/.env ]; then \
 		if [ -f infra/supabase/bundle/.env.example ]; then \
@@ -14,7 +16,6 @@ supabase-up:
 	fi
 	cd infra/supabase/bundle && docker compose up -d db rest auth kong storage meta
 
-# Supabase スタックを停止
 supabase-down:
 	cd infra/supabase/bundle && docker compose down
 
@@ -36,10 +37,13 @@ endif
 # db-reset-remote:
 # 	supabase db reset --db-url $(DATABASE_URL)
 
-# Supabase の初期セットアップ (何度実行しても安全な想定)
-supabase-init: supabase-fetch supabase-up db-schema
+supabase-reset: supabase-remove supabase-fetch supabase-up supabase-migrate
 
-# Next.js アプリだけ起動
+# Haskell バックエンドを起動 (nix run)
+backend-up:
+	DATABASE_URL=postgresql://postgres:your-super-secret-and-long-postgres-password@localhost:54322/postgres nix run .#cartographer-backend
+
+# Next.js 開発サーバ
 dev-app:
 	npm run dev
 
