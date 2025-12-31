@@ -2,9 +2,10 @@ export const dynamic = "force-dynamic";
 
 import axios from "axios";
 import { type NextRequest, NextResponse } from "next/server";
+import { FAST_MODEL } from "@/lib/llm";
 
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
-const MODEL = "google/gemini-3-flash-preview";
+const MODEL = FAST_MODEL;
 
 interface FormSuggestionRequest {
   backgroundInfo: string;
