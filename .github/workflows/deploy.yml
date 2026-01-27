@@ -37,9 +37,10 @@ jobs:
     secrets:
       DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
       ENV_FILE_CONTENT: ${{ secrets.ENV_STAGING }}
+      ORIGIN_CERT_PEM: ${{ secrets.ORIGIN_CERT_PEM }}
+      ORIGIN_KEY_PEM: ${{ secrets.ORIGIN_KEY_PEM }}
 
   deploy-production:
-    needs: [build-backend, build-frontend]
     # Deploy to production: v* tag push OR manual with target=production
     if: |
       (startsWith(github.ref, 'refs/tags/v')) ||
@@ -53,3 +54,5 @@ jobs:
     secrets:
       DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
       ENV_FILE_CONTENT: ${{ secrets.ENV_PRODUCTION }}
+      ORIGIN_CERT_PEM: ${{ secrets.ORIGIN_CERT_PEM }}
+      ORIGIN_KEY_PEM: ${{ secrets.ORIGIN_KEY_PEM }}
