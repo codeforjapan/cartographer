@@ -47,10 +47,16 @@ resource "aws_instance" "app" {
   }
 
   metadata_options {
-    http_tokens = "optional" # NixOS AMI needs IMDSv1 to fetch SSH keys during bootstrap
+    http_tokens = "required" # IMDSv2 enforced (matches current prod instance)
+    # TODO:prod と差分があるので共通化する. SSH key の登録法関係
   }
 
   depends_on = [aws_efs_mount_target.m36]
+
+  lifecycle {
+    ignore_changes = [ami]
+    # TODO:prod と差分があるので共通化する. SSH key の登録法関係
+  }
 }
 
 # Elastic IP
