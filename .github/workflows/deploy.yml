@@ -125,8 +125,10 @@ jobs:
       environment: staging
       colmena_target: cartographer-staging
       server_ip: '3.113.176.251'
+      env_file_name: '.env.staging'
     secrets:
       DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      ENV_FILE_CONTENT: ${{ secrets.ENV_STAGING }}
 
   deploy-production:
     needs: [build-backend, build-frontend]
@@ -139,5 +141,7 @@ jobs:
       environment: production
       colmena_target: cartographer-prod
       server_ip: '13.192.44.10'
+      env_file_name: '.env.production'
     secrets:
       DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      ENV_FILE_CONTENT: ${{ secrets.ENV_PRODUCTION }}

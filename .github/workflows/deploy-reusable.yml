@@ -15,9 +15,16 @@ on:
         description: 'Target server IP for SSH'
         required: true
         type: string
+      env_file_name:
+        description: 'Name of the env file to create (.env.staging or .env.production)'
+        required: true
+        type: string
     secrets:
       DEPLOY_SSH_KEY:
         required: true
+      ENV_FILE_CONTENT:
+        required: true
+        description: 'Full content of .env file for the target environment'
 
 jobs:
   deploy:
@@ -36,6 +43,11 @@ jobs:
         with:
           name: kotto5
         continue-on-error: true
+
+      - name: Create env file from secrets
+        run: |
+          echo "${{ secrets.ENV_FILE_CONTENT }}" > ${{ inputs.env_file_name }}
+          echo "✓ Created ${{ inputs.env_file_name }}"
 
       - name: Setup SSH
         run: |
