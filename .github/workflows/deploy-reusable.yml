@@ -25,6 +25,12 @@ on:
       ENV_FILE_CONTENT:
         required: true
         description: 'Full content of .env file for the target environment'
+      ORIGIN_CERT_PEM:
+        required: true
+        description: 'Cloudflare Origin Certificate'
+      ORIGIN_KEY_PEM:
+        required: true
+        description: 'Private Key for Origin Certificate'
 
 jobs:
   deploy:
@@ -48,6 +54,14 @@ jobs:
         run: |
           echo "${{ secrets.ENV_FILE_CONTENT }}" > ${{ inputs.env_file_name }}
           echo "✓ Created ${{ inputs.env_file_name }}"
+
+      - name: Create SSL Certs from secrets
+        run: |
+          mkdir -p infra/terraform
+          echo "${{ secrets.ORIGIN_CERT_PEM }}" > infra/terraform/origin-cert.pem
+          echo "${{ secrets.ORIGIN_KEY_PEM }}" > infra/terraform/origin-key.pem
+          chmod 600 infra/terraform/origin-key.pem
+          echo "✓ Created SSL certificates at infra/terraform/"
 
       - name: Setup SSH
         run: |
