@@ -3,6 +3,8 @@ name: Build and Deploy
 on:
   push:
     branches: [main]
+    tags:
+      - 'v*'  # Release tags trigger production deployment
   pull_request:
   workflow_dispatch:
     inputs:
@@ -11,6 +13,14 @@ on:
         required: false
         default: false
         type: boolean
+      target:
+        description: 'Deploy target'
+        required: false
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
 
 jobs:
   build-backend:
@@ -104,51 +114,30 @@ jobs:
           exit 1
 
 
-  deploy:
+  deploy-staging:
     needs: [build-backend, build-frontend]
-    runs-on: ubuntu-latest  # Build happens on target server, not here
-    # Deploy only on main branch AND when secrets are configured AND (push OR manual with deploy=true)
+    # Deploy to staging: main branch push OR manual with target=staging
     if: |
-      github.ref == 'refs/heads/main' && 
-      (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.deploy == true))
-    steps:
-      - uses: actions/checkout@v4
+      (github.ref == 'refs/heads/main' && github.event_name == 'push') ||
+      (github.event_name == 'workflow_dispatch' && inputs.deploy == true && inputs.target == 'staging')
+    uses: ./.github/workflows/deploy-reusable.yml
+    with:
+      environment: staging
+      colmena_target: cartographer-staging
+      server_ip: '3.113.176.251'
+    secrets:
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
 
-      - uses: cachix/install-nix-action@v27
-        with:
-          extra_nix_config: |
-            experimental-features = nix-command flakes
-            accept-flake-config = true
-
-      - uses: cachix/cachix-action@v15
-        with:
-          name: kotto5
-        continue-on-error: true
-
-      - name: Check deployment secrets
-        id: check-secrets
-        run: |
-          if [ -z "${{ secrets.DEPLOY_SSH_KEY }}" ] || [ -z "${{ secrets.SERVER_IP }}" ]; then
-            echo "skip=true" >> $GITHUB_OUTPUT
-            echo "⚠️ Deployment secrets not configured. Skipping deploy."
-          else
-            echo "skip=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Setup SSH
-        if: steps.check-secrets.outputs.skip != 'true'
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts 2>/dev/null || true
-
-      - name: Deploy via Colmena
-        if: steps.check-secrets.outputs.skip != 'true'
-        run: |
-          nix run github:zhaofengli/colmena -- apply \
-            --impure \
-            --on cartographer-staging \
-            --verbose
-        env:
-          NIX_SSHOPTS: "-i ~/.ssh/id_ed25519"
+  deploy-production:
+    needs: [build-backend, build-frontend]
+    # Deploy to production: v* tag push OR manual with target=production
+    if: |
+      (startsWith(github.ref, 'refs/tags/v')) ||
+      (github.event_name == 'workflow_dispatch' && inputs.deploy == true && inputs.target == 'production')
+    uses: ./.github/workflows/deploy-reusable.yml
+    with:
+      environment: production
+      colmena_target: cartographer-prod
+      server_ip: '13.192.44.10'
+    secrets:
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
