@@ -148,8 +148,7 @@ jobs:
         run: |
           nix run github:zhaofengli/colmena -- apply \
             --impure \
-            --on cartographer-prod \
-            --verbose \
-            -- --max-jobs 1 --cores 1
+            --on cartographer-staging \
+            --verbose
         env:
           NIX_SSHOPTS: "-i ~/.ssh/id_ed25519"

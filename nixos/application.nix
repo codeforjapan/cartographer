@@ -71,6 +71,7 @@
         Restart = "always";
         RestartSec = 5;
         EnvironmentFile = "/run/keys/env-file";
+        OOMScoreAdjust = -900;  # Protect from OOM killer during builds
       };
     };
 
@@ -98,6 +99,7 @@
       Restart = "always";
       RestartSec = 5;
       EnvironmentFile = "/run/keys/env-file";
+      OOMScoreAdjust = -900;  # Protect from OOM killer during builds
     };
   };
 

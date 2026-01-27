@@ -469,7 +469,7 @@
               deployment = {
                 targetHost = infra.instance_public_ip;
                 targetUser = "root";
-                buildOnTarget = false;
+                buildOnTarget = true; # Build on target to avoid needing ARM64 CI runner
 
                 keys."env-file" = {
                   keyFile = prjRoot + "/.env.staging";

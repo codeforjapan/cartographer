@@ -18,6 +18,16 @@
     nix.settings = {
       substituters = [ "https://kotto5.cachix.org" ];
       trusted-public-keys = [ "kotto5.cachix.org-1:kIqTVHIxWyPkkiJ24ceZpS6JVvs2BE8GTIA48virk/s=" ];
+      # Memory-saving build options (for buildOnTarget)
+      max-jobs = 1;
+      cores = 2;
+    };
+
+    # Protect nix-daemon from consuming all memory during builds (t4g.medium = 4GB RAM)
+    systemd.services.nix-daemon.serviceConfig = {
+      MemoryMax = "2560M";      # Limit to 2.5GB
+      MemorySwapMax = "0";      # Don't use swap (fail fast instead of slowing down)
+      OOMScoreAdjust = 500;     # Make it easier to kill than default
     };
 
     # System packages
