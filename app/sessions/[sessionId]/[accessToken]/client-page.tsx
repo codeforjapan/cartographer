@@ -1482,7 +1482,7 @@ export default function AdminPage({
                 {canEdit ? (
                   <div className="space-y-3 rounded-xl border border-border/50 bg-muted/30 p-4">
                     <ReportTasteSelect
-                      value={selectedReportStyle}
+                      value={confirmedStyle.type}
                       options={REPORT_STYLE_OPTIONS}
                       onClick={() => {
                         setShowReportModal(true);
