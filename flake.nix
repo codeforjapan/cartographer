@@ -407,7 +407,7 @@
               deployment = {
                 targetHost = infra.instance_public_ip;
                 targetUser = "root";
-                buildOnTarget = false; # Try local build first - may need Linux builder
+                buildOnTarget = false; # Local build on ARM64 runner
 
                 keys."env-file" = {
                   keyFile = prjRoot + "/.env.production";

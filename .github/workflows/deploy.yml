@@ -106,7 +106,7 @@ jobs:
 
   deploy:
     needs: [build-backend, build-frontend]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm64  # ARM64 runner to match target server architecture
     # Deploy only on main branch AND when secrets are configured AND (push OR manual with deploy=true)
     if: |
       github.ref == 'refs/heads/main' && 
