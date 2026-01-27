@@ -1,0 +1,44 @@
+name: Build Check (Staging)
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+
+      - uses: cachix/cachix-action@v15
+        with:
+          name: kotto5
+        continue-on-error: true
+
+      - name: Create env file from secrets (Required for flake eval)
+        run: |
+          echo "${{ secrets.ENV_STAGING }}" > .env.staging
+          echo "✓ Created .env.staging for build check"
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H 3.113.176.251 >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Build on Staging (No Deploy)
+        run: |
+          echo "🏗️ Building on Staging server (Dry Run)"
+          nix run github:zhaofengli/colmena -- build \
+            --impure \
+            --on cartographer-staging \
+            --verbose
+        env:
+          NIX_SSHOPTS: "-i ~/.ssh/id_ed25519"
