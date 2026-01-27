@@ -147,6 +147,7 @@ jobs:
         if: steps.check-secrets.outputs.skip != 'true'
         run: |
           nix run github:zhaofengli/colmena -- apply \
+            --impure \
             --on cartographer-prod \
             --verbose
         env:
