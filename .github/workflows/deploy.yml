@@ -106,7 +106,7 @@ jobs:
 
   deploy:
     needs: [build-backend, build-frontend]
-    runs-on: ubuntu-24.04-arm64  # ARM64 runner to match target server architecture
+    runs-on: ubuntu-latest  # Build happens on target server, not here
     # Deploy only on main branch AND when secrets are configured AND (push OR manual with deploy=true)
     if: |
       github.ref == 'refs/heads/main' && 
@@ -149,6 +149,7 @@ jobs:
           nix run github:zhaofengli/colmena -- apply \
             --impure \
             --on cartographer-prod \
-            --verbose
+            --verbose \
+            -- --max-jobs 1 --cores 1
         env:
           NIX_SSHOPTS: "-i ~/.ssh/id_ed25519"
