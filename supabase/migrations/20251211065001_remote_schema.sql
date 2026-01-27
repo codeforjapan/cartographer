@@ -761,8 +761,3 @@ CREATE TRIGGER broadcast_agent_instances AFTER INSERT OR DELETE OR UPDATE ON pub
 CREATE TRIGGER broadcast_event_threads AFTER INSERT OR DELETE OR UPDATE ON public.event_threads FOR EACH ROW EXECUTE FUNCTION broadcast_table_changes('event_threads');
 
 CREATE TRIGGER broadcast_responses AFTER INSERT OR DELETE OR UPDATE ON public.responses FOR EACH ROW EXECUTE FUNCTION broadcast_table_changes('responses');
-
--- Grant schema-level permissions to Supabase roles
-grant usage on schema public to anon, authenticated, service_role, authenticator;
-
-
