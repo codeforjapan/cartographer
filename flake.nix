@@ -158,7 +158,7 @@
             version = "0.1.0";
             src = ./.;
 
-            npmDepsHash = "sha256-rC+7ifRQayLa0O51jJ2jVeZ/DUCvwg84keoHCJVf5Q4="; # Updated hash
+            npmDepsHash = "sha256-n5O4TB+gYtVvcMWdIVw8t2UqhFCBMlYJ/X2X359/rUo="; # Updated hash
 
             # Next.js build needs these
             nativeBuildInputs = [ pkgs.pkg-config ];
