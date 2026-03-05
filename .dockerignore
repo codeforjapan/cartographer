@@ -1,0 +1,55 @@
+# Git
+.git
+.gitignore
+
+# Dependencies (rebuilt in Docker)
+node_modules
+backend/dist-newstyle
+dist-newstyle
+dist
+
+# Build outputs
+.next
+out
+build
+result
+
+# Environment files
+.env
+.env.*
+!.env*.example
+
+# IDE / OS
+.DS_Store
+.vscode
+.idea
+*.swp
+*.swo
+
+# Nix
+.direnv
+.ghc.environment.*
+
+# Terraform state
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# Test artifacts
+coverage
+playwright-report
+test-results
+
+# Docker
+docker-compose.yml
+docker-compose.override.yml
+
+# M36 data
+.m36-data/
+
+# Supabase bundle
+infra/supabase/bundle
+
+# CDK outputs
+infra/cdk/node_modules
+infra/cdk/cdk.out

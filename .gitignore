@@ -79,3 +79,5 @@ override.tf.json
 .terraformrc
 terraform.rc
 infra/tfc-bootstrap/terraform.tfvars
+
+node_modules/

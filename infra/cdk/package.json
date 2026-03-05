@@ -1,0 +1,22 @@
+{
+  "name": "cartographer-infra",
+  "version": "0.1.0",
+  "bin": {
+    "app": "bin/app.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "cdk": "cdk"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.3",
+    "aws-cdk": "^2.1108.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.241.0",
+    "constructs": "^10.5.1"
+  }
+}
