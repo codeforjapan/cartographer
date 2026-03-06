@@ -81,3 +81,7 @@ terraform.rc
 infra/tfc-bootstrap/terraform.tfvars
 
 node_modules/
+
+# CDK
+infra/cdk/cdk.out/
+infra/cdk/cdk.context.json

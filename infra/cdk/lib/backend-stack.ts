@@ -5,14 +5,16 @@ import * as efs from "aws-cdk-lib/aws-efs";
 import * as ecr from "aws-cdk-lib/aws-ecr";
 import * as elbv2 from "aws-cdk-lib/aws-elasticloadbalancingv2";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
+import * as route53 from "aws-cdk-lib/aws-route53";
+import * as route53Targets from "aws-cdk-lib/aws-route53-targets";
 import { Construct } from "constructs";
 
 export interface BackendStackProps extends cdk.StackProps {
-  certificateArn?: string;
+  domainName: string;
 }
 
 export class BackendStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: BackendStackProps) {
+  constructor(scope: Construct, id: string, props: BackendStackProps) {
     super(scope, id, props);
 
     // --- Networking ---
@@ -33,17 +35,12 @@ export class BackendStack extends cdk.Stack {
       ],
     });
 
-    // --- ECR Repository ---
-    const repository = new ecr.Repository(this, "BackendRepo", {
-      repositoryName: "cartographer-backend",
-      removalPolicy: cdk.RemovalPolicy.RETAIN,
-      lifecycleRules: [
-        {
-          maxImageCount: 10,
-          description: "Keep only 10 images",
-        },
-      ],
-    });
+    // --- ECR Repository (既存リポジトリを参照) ---
+    const repository = ecr.Repository.fromRepositoryName(
+      this,
+      "BackendRepo",
+      "cartographer-backend"
+    );
 
     // --- EFS ---
     const fileSystem = new efs.FileSystem(this, "M36FileSystem", {
@@ -84,7 +81,7 @@ export class BackendStack extends cdk.Stack {
         memoryLimitMiB: 2048,
         cpu: 1024,
         runtimePlatform: {
-          cpuArchitecture: ecs.CpuArchitecture.ARM64,
+          cpuArchitecture: ecs.CpuArchitecture.X86_64,
           operatingSystemFamily: ecs.OperatingSystemFamily.LINUX,
         },
       }
@@ -143,6 +140,18 @@ export class BackendStack extends cdk.Stack {
       ec2.Peer.ipv4(vpc.vpcCidrBlock)
     );
 
+    // --- DNS & Certificate ---
+    const { domainName } = props;
+
+    const hostedZone = new route53.PublicHostedZone(this, "HostedZone", {
+      zoneName: domainName,
+    });
+
+    const certificate = new acm.Certificate(this, "Certificate", {
+      domainName,
+      validation: acm.CertificateValidation.fromDns(hostedZone),
+    });
+
     // --- ALB ---
     const alb = new elbv2.ApplicationLoadBalancer(this, "ALB", {
       vpc,
@@ -163,18 +172,10 @@ export class BackendStack extends cdk.Stack {
     });
 
     // HTTPS listener
-    const certificateArn = props?.certificateArn ?? this.node.tryGetContext("certificateArn");
     const httpsListener = alb.addListener("HttpsListener", {
       port: 443,
-      certificates: certificateArn
-        ? [
-            elbv2.ListenerCertificate.fromArn(certificateArn),
-          ]
-        : undefined,
-      // When no certificate is provided, use HTTP on 443 for initial setup
-      protocol: certificateArn
-        ? elbv2.ApplicationProtocol.HTTPS
-        : elbv2.ApplicationProtocol.HTTP,
+      certificates: [certificate],
+      protocol: elbv2.ApplicationProtocol.HTTPS,
     });
 
     // --- ECS Service ---
@@ -214,20 +215,30 @@ export class BackendStack extends cdk.Stack {
       targetUtilizationPercent: 70,
     });
 
+    // --- DNS A Record ---
+    new route53.ARecord(this, "AlbAliasRecord", {
+      zone: hostedZone,
+      recordName: domainName,
+      target: route53.RecordTarget.fromAlias(
+        new route53Targets.LoadBalancerTarget(alb)
+      ),
+    });
+
     // --- Outputs ---
-    new cdk.CfnOutput(this, "AlbDnsName", {
-      value: alb.loadBalancerDnsName,
-      description: "ALB DNS Name",
+    new cdk.CfnOutput(this, "NameServers", {
+      value: cdk.Fn.join(", ", hostedZone.hostedZoneNameServers!),
+      description:
+        "NS records — add these to the parent domain for zone delegation",
+    });
+
+    new cdk.CfnOutput(this, "BackendUrl", {
+      value: `https://${domainName}`,
+      description: "Backend URL",
     });
 
     new cdk.CfnOutput(this, "EcrRepositoryUri", {
       value: repository.repositoryUri,
       description: "ECR Repository URI",
-    });
-
-    new cdk.CfnOutput(this, "EfsFileSystemId", {
-      value: fileSystem.fileSystemId,
-      description: "EFS File System ID",
     });
   }
 }
